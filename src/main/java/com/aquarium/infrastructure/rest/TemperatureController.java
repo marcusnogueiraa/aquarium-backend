@@ -1,7 +1,5 @@
 package com.aquarium.infrastructure.rest;
 
-import com.aquarium.application.port.in.RecordTemperatureUseCase;
-import com.aquarium.infrastructure.rest.dto.request.RecordTemperatureRequest;
 import com.aquarium.infrastructure.rest.dto.response.TemperatureResponse;
 import com.aquarium.application.port.in.QueryTemperatureUseCase;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +16,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TemperatureController {
 
-    private final RecordTemperatureUseCase recordTemperatureUseCase;
     private final QueryTemperatureUseCase queryTemperatureUseCase;
-
-    @PostMapping
-    public ResponseEntity<Void> recordTemperature(@RequestBody RecordTemperatureRequest request) {
-        recordTemperatureUseCase.recordTemperature(request.getAquariumId(), request.getValue());
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/{aquariumId}")
     public ResponseEntity<List<TemperatureResponse>> getTemperatures(

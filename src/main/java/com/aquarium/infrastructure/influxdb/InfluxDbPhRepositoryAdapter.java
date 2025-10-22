@@ -1,7 +1,7 @@
 package com.aquarium.infrastructure.influxdb;
 
-import com.aquarium.application.domain.TemperatureReading;
-import com.aquarium.application.port.out.TemperatureRepositoryPort;
+import com.aquarium.application.domain.PhReading;
+import com.aquarium.application.port.out.PhRepositoryPort;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class InfluxDBTemperatureRepositoryAdapter implements TemperatureRepositoryPort {
+public class InfluxDbPhRepositoryAdapter implements PhRepositoryPort {
 
     private final InfluxDBClient influxDBClient;
 
@@ -29,10 +29,10 @@ public class InfluxDBTemperatureRepositoryAdapter implements TemperatureReposito
     private String org;
 
     @Override
-    public void save(TemperatureReading reading) {
+    public void save(PhReading reading) {
         WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
 
-        Point point = Point.measurement("temperature")
+        Point point = Point.measurement("ph")
                 .addTag("aquariumId", reading.getAquariumId())
                 .addField("value", reading.getValue())
                 .time(reading.getTimestamp(), WritePrecision.NS);
@@ -41,21 +41,21 @@ public class InfluxDBTemperatureRepositoryAdapter implements TemperatureReposito
     }
 
     @Override
-    public List<TemperatureReading> findByAquariumIdAndTimestampBetween(String aquariumId, Instant start, Instant end) {
+    public List<PhReading> findByAquariumIdAndTimestampBetween(String aquariumId, Instant start, Instant end) {
         String fluxQuery = String.format(
                 "from(bucket: \"%s\") " +
                 "|> range(start: %s, stop: %s) " +
-                "|> filter(fn: (r) => r._measurement == \"temperature\") " +
+                "|> filter(fn: (r) => r._measurement == \"ph\") " +
                 "|> filter(fn: (r) => r.aquariumId == \"%s\")",
                 bucket, start.toString(), end.toString(), aquariumId
         );
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(fluxQuery, org);
-        List<TemperatureReading> readings = new ArrayList<>();
+        List<PhReading> readings = new ArrayList<>();
 
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
-                readings.add(new TemperatureReading(
+                readings.add(new PhReading(
                         aquariumId,
                         (Double) record.getValueByKey("_value"),
                         record.getTime()

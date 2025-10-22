@@ -1,6 +1,5 @@
 package com.aquarium.infrastructure.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +54,30 @@ public class MqttConfig {
         adapter.setConverter(new DefaultPahoMessageConverter());
         adapter.setQos(qos);
         adapter.setOutputChannel(temperatureInputChannel());
+        return adapter;
+    }
+
+    @Bean
+    public MessageChannel phInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageProducer phInboundAdapter(
+            MqttPahoClientFactory factory,
+            @Value("${mqtt.clientId}") String clientId,
+            @Value("${mqtt.topics.ph}") String topic,
+            @Value("${mqtt.qos:1}") int qos
+    ) {
+        MqttPahoMessageDrivenChannelAdapter adapter =
+                new MqttPahoMessageDrivenChannelAdapter(
+                        clientId + "-ph-in",
+                        factory,
+                        topic
+                );
+        adapter.setConverter(new DefaultPahoMessageConverter());
+        adapter.setQos(qos);
+        adapter.setOutputChannel(phInputChannel());
         return adapter;
     }
 }
